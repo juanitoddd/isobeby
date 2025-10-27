@@ -1,9 +1,11 @@
 use bevy::{
     prelude::*,
-    camera::ScalingMode,
+    camera::{ScalingMode, RenderTarget},
     ui::prelude::*,
-    render::render_resource::{
-        Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+    render::{            
+            render_resource::{
+            Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+        }
     },
 };
 mod grid;
@@ -102,6 +104,11 @@ fn setup_minimap(
     // 1) Create a render texture (what the minimap camera will draw into)
     let width: u32 = 256;
     let height: u32 = 256;
+
+    let image = Image::new_target_texture(width, height, TextureFormat::bevy_default());
+
+    let image_handle = images.add(image);
+
     let mut image = Image {
         texture_descriptor: TextureDescriptor {
             label: Some("minimap_rt"),
@@ -127,40 +134,36 @@ fn setup_minimap(
         scaling_mode: ScalingMode::FixedVertical { viewport_height: 20.0 },
         ..OrthographicProjection::default_3d()
     };
-    // commands.spawn((
-    //     Camera3d {
-    //         // Render into the texture instead of the screen
-    //         target: bevy::render::camera::RenderTargetInfo::Image(rt_handle.clone()),
-    //         ..default()
-    //     },
-    //     Projection::from(ortho),
-    //     // Place camera above origin looking down
-    //     Transform::from_translation(Vec3::new(0.0, 50.0, 0.001)) // small z offset to avoid singular up vector
-    //         .looking_at(Vec3::ZERO, -Vec3::Z), // up = -Z gives Cartesian feel on the image
-    //     // If you want to show extra overlays only on minimap:
-    //     // RenderLayers::from_layers(&[0, 1]),
-    // ));
+    commands.spawn((
+        Camera3d::default(),
+        Camera {
+            // Render into the texture instead of the screen
+            target: RenderTarget::Image(rt_handle.clone().into()),    
+            ..default()
+        },
+        Projection::from(ortho),
+        // Place camera above origin looking down
+        Transform::from_translation(Vec3::new(0.0, 50.0, 0.001)) // small z offset to avoid singular up vector
+            .looking_at(Vec3::ZERO, -Vec3::Z), // up = -Z gives Cartesian feel on the image
+        // If you want to show extra overlays only on minimap:
+        // RenderLayers::from_layers(&[0, 1]),
+    ));
 
     // 3) UI: place the render texture in the corner
-    commands.spawn(Node {
+    commands.spawn((Node {
         width:Val::Px(180.0),
         height: Val::Px(180.0),        
         position_type: PositionType::Absolute,
-        right: Val::Px(16.0),                
-        // background_color: BackgroundColor(Color::rgba(0.0, 0.0, 0.0, 0.35)),
+        right: Val::Px(10.0),
+        top: Val::Px(10.0),
         ..default()
-    })
-    // .with_children(|parent| {
-    //     parent.spawn(Image {
-    //         style: Style {
-    //             width: Val::Percent(100.0),
-    //             height: Val::Percent(100.0),
-    //             ..default()
-    //         },
-    //         image: UiImage::new(rt_handle),
-    //         ..default()
-    //     });
-    // });
+    }))
+    .with_children(|parent| {
+        parent.spawn(ImageNode {            
+            image: rt_handle,
+            ..default()
+        });
+    });
 }
 
 // --- Separate system to load your Blender asset (.glb) ---
