@@ -9,6 +9,13 @@ pub struct IsoCamera {
     pub radius: f32,    // distance from target
 }
 
+#[derive(Component)]
+pub struct MinimapCamera {
+    pub height: f32, // how high above the world to render from                       
+    pub center: Vec3 // what point to look at (usually Vec3::ZERO or player)
+}
+
+
 /// Handles in-progress spin + queued steps.
 #[derive(Component)]
 pub struct CameraSpin {
@@ -60,6 +67,7 @@ pub fn animate_camera_spin(
         let eased = ease_in_out_cubic(alpha);
 
         let yaw = lerp_angle_deg(spin.start_yaw, spin.end_yaw, eased);
+        println!("{}", yaw);
         iso.yaw_deg = yaw.rem_euclid(360.0);
         *tform = iso_camera_transform(iso.yaw_deg, iso.pitch_deg, iso.radius);
 
@@ -77,6 +85,27 @@ pub fn animate_camera_spin(
                 spin.t = 0.0;
             }
         }
+    }
+}
+
+/// Call this every frame (or whenever yaw changes):
+/// - Keeps the minimap camera top-down (forward = -Y)
+/// - Rotates its "up" around Y by the same yaw as the iso camera.
+///   Using `up = rotate_y(-Z, yaw)` turns the minimap by the identical 90° steps.
+fn sync_minimap_to_iso_yaw(
+    iso_q: Query<&IsoCamera>,
+    mut mini_q: Query<(&MinimapCamera, &mut Transform)>,
+) {
+    let iso = iso_q.single();
+    let yaw = iso.yaw_deg.to_radians();
+
+    // Up vector rotated around Y by yaw (start from -Z for Cartesian feel)
+    let up = Quat::from_rotation_y(yaw) * -Vec3::Z;
+
+    for (mini, mut t) in &mut mini_q {
+        // Keep the camera straight above the center, looking down:
+        let eye = Vec3::new(mini.center.x, mini.height, mini.center.z);
+        *t = Transform::from_translation(eye).looking_at(mini.center, up);
     }
 }
 

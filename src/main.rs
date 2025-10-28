@@ -14,7 +14,7 @@ fn main() {
         .add_systems(Startup, (setup::scene, setup::minimap))
         .add_systems(Update, grid::draw_grid_gizmos) // draw grid        
         .add_systems(Update, (collision::move_with_collision_system, collision::sync_render_from_grid))
-        .add_systems(Update, (camera::handle_spin_input, camera::animate_camera_spin))
+        .add_systems(Update, (camera::handle_spin_input, (camera::animate_camera_spin, camera::sync_minimap_to_iso_yaw).chain()))        
         // .add_systems(Startup, spawn_asset.after(setup))
         .run();
 }

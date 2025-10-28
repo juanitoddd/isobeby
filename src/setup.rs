@@ -154,6 +154,7 @@ pub fn minimap(
             .looking_at(Vec3::ZERO, -Vec3::Z), // up = -Z gives Cartesian feel on the image
         // If you want to show extra overlays only on minimap:
         // RenderLayers::from_layers(&[0, 1]),
+        camera::MinimapCamera { height: 50.0, center: Vec3::ZERO },
     ));
 
     // 3) UI: place the render texture in the corner
