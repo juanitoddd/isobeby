@@ -76,7 +76,6 @@ pub fn animate_camera_spin(
         let eased = ease_in_out_cubic(alpha);
 
         let yaw = lerp_angle_deg(spin.start_yaw, spin.end_yaw, eased);
-        // println!("{}", yaw);
         iso.yaw_deg = yaw.rem_euclid(360.0);
         *tform = iso_camera_transform(iso.yaw_deg, iso.pitch_deg, iso.radius);
 
@@ -116,7 +115,6 @@ pub fn sync_minimap_to_iso_yaw(
     for (mini, mut t) in &mut mini_q {
         // Keep the camera straight above the center, looking down:        
         let eye = Vec3::new(mini.center.x, mini.height, mini.center.z);
-        // println!("minimap {}", eye);
         *t = Transform::from_translation(eye).looking_at(mini.center, up);
     }
 }
@@ -140,15 +138,15 @@ pub fn follow_center_smooth(
     mut cam_q: Query<(&IsoCamera, &mut Transform, &mut CameraFollow)>,
 ) {
     let dt = time.delta_secs();
-    let (gp) = player_q.single().unwrap();
-    let target = world::grid_to_iso(gp.x, gp.y, constants::TILE_W, constants::TILE_H);    
-
+    let gp = player_q.single().unwrap();
+    let target = world::grid_to_iso(gp.x, gp.y, constants::TILE_W, constants::TILE_H);     
+    println!("gp ~ {}, {}", gp.x, gp.y);
     let (iso, mut cam_tf, mut f) = cam_q.single_mut().unwrap();
     // desired camera position along iso orbit
-    let yaw = iso.yaw_deg.to_radians();
-    let pitch = iso.pitch_deg.to_radians();
-    let dir = Vec3::new(yaw.cos() * pitch.cos(), pitch.sin(), yaw.sin() * pitch.cos());
-    let desired = target + dir * iso.radius;
+    // let yaw = iso.yaw_deg.to_radians();
+    // let pitch = iso.pitch_deg.to_radians();
+    // let dir = Vec3::new(yaw.cos() * pitch.cos(), pitch.sin(), yaw.sin() * pitch.cos());
+    let desired = target;
 
     // critically-damped spring to desired
     let k = f.stiffness;       // e.g. 20.0
@@ -158,11 +156,11 @@ pub fn follow_center_smooth(
 
     let accel = (desired - pos) * k - vel * c;
     vel += accel * dt;
-    pos += vel * dt;
+    // pos += vel * dt;
 
     f.vel = vel;
-    cam_tf.translation = pos;
-    cam_tf.look_at(target, Vec3::Y);    
+    // cam_tf.translation = pos;
+    // cam_tf.look_at(target, Vec3::Y);
 }
 
 /* ---------------- Helpers ---------------- */

@@ -93,7 +93,6 @@ pub fn scene(
     // The movable player cube
     let start = world::GridPos { x: 0.0, y: 0.0 };    
     let p = world::grid_to_iso(start.x, start.y, constants::TILE_W, constants::TILE_H);
-    println!("initial {}", p);
     commands.spawn((
         start,
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
@@ -159,6 +158,7 @@ pub fn minimap(
         // If you want to show extra overlays only on minimap:
         // RenderLayers::from_layers(&[0, 1]),
         camera::MinimapCamera { height: 50.0, center: Vec3::ZERO },
+        camera::CameraFollow { stiffness: 20.0, damping: 10.0, vel: Vec3::ZERO }
     ));
 
     // 3) UI: place the render texture in the corner

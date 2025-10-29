@@ -28,10 +28,10 @@ fn input_move_grid(
     
     // Optional: grid-axis arrows
     
-    if keys.just_pressed(KeyCode::ArrowUp)    { dy += 1.0; }
-    if keys.just_pressed(KeyCode::ArrowDown)  { dy -= 1.0; }
-    if keys.just_pressed(KeyCode::ArrowLeft)  { dx -= 1.0; }
-    if keys.just_pressed(KeyCode::ArrowRight) { dx += 1.0; }
+    if keys.just_pressed(KeyCode::ArrowUp)    { dy += 0.2; }
+    if keys.just_pressed(KeyCode::ArrowDown)  { dy -= 0.2; }
+    if keys.just_pressed(KeyCode::ArrowLeft)  { dx -= 0.2; }
+    if keys.just_pressed(KeyCode::ArrowRight) { dx += 0.2; }
     
     (dx, dy)
 }
