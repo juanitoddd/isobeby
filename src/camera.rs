@@ -115,8 +115,8 @@ pub fn sync_minimap_to_iso_yaw(
 
     for (mini, mut t) in &mut mini_q {
         // Keep the camera straight above the center, looking down:        
-        let eye = Vec3::new(mini.center.x + (gp.x as f32), mini.height, mini.center.z);
-        println!("minimap {}", eye);
+        let eye = Vec3::new(mini.center.x, mini.height, mini.center.z);
+        // println!("minimap {}", eye);
         *t = Transform::from_translation(eye).looking_at(mini.center, up);
     }
 }

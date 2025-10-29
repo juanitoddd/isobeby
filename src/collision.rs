@@ -11,9 +11,9 @@ use crate::constants;
 ///   Up: (0,-1), Left: (-1,0), Down: (0,+1), Right: (+1,0)
 fn input_move_grid(
     keys: Res<ButtonInput<KeyCode>>,
-) -> (i32, i32) {
-    let mut dx = 0;
-    let mut dy = 0;
+) -> (f32, f32) {
+    let mut dx = 0.0;
+    let mut dy = 0.0;
 
     // Screen-aligned moves (1 tile per key press)
     // if keys.just_pressed(KeyCode::KeyW) { dx -= 1; dy -= 1; }
@@ -21,17 +21,17 @@ fn input_move_grid(
     // if keys.just_pressed(KeyCode::KeyA) { dx -= 1; dy += 1; }
     // if keys.just_pressed(KeyCode::KeyD) { dx += 1; dy -= 1; }
 
-    if keys.just_pressed(KeyCode::KeyW) { dy += 1; }
-    if keys.just_pressed(KeyCode::KeyS) { dy -= 1; }
-    if keys.just_pressed(KeyCode::KeyA) { dx -= 1; }
-    if keys.just_pressed(KeyCode::KeyD) { dx += 1; }
+    if keys.just_pressed(KeyCode::KeyW) { dy += 1.0; }
+    if keys.just_pressed(KeyCode::KeyS) { dy -= 1.0; }
+    if keys.just_pressed(KeyCode::KeyA) { dx -= 1.0; }
+    if keys.just_pressed(KeyCode::KeyD) { dx += 1.0; }
     
     // Optional: grid-axis arrows
     
-    if keys.just_pressed(KeyCode::ArrowUp)    { dy += 1; }
-    if keys.just_pressed(KeyCode::ArrowDown)  { dy -= 1; }
-    if keys.just_pressed(KeyCode::ArrowLeft)  { dx -= 1; }
-    if keys.just_pressed(KeyCode::ArrowRight) { dx += 1; }
+    if keys.just_pressed(KeyCode::ArrowUp)    { dy += 1.0; }
+    if keys.just_pressed(KeyCode::ArrowDown)  { dy -= 1.0; }
+    if keys.just_pressed(KeyCode::ArrowLeft)  { dx -= 1.0; }
+    if keys.just_pressed(KeyCode::ArrowRight) { dx += 1.0; }
     
     (dx, dy)
 }
@@ -43,15 +43,16 @@ pub fn move_with_collision_system(
 ) {    
     let (dx, dy) = input_move_grid(keys);    
 
-    if dx == 0 && dy == 0 { return; }    
+    if dx == 0.0 && dy == 0.0 { return; }    
 
     for mut gp in &mut movers {
         let next = (gp.x + dx, gp.y + dy);        
+
         // Simple tile collision
-        if !blocked.0.contains(&next) {
+        // if !blocked.0.contains(&next) {
             gp.x = next.0;
             gp.y = next.1;
-        }
+        // }
         // else: blocked; optionally try sliding along one axis here
     }
 }

@@ -64,7 +64,7 @@ pub fn scene(
     for gy in 0..H {
         for gx in 0..W {
             if LEVEL[gy][gx] == 1 {
-                blocked.0.insert((gx as i32, gy as i32));
+                // blocked.0.insert((gx as i32, gy as i32));
             }
         }
     }
@@ -80,7 +80,7 @@ pub fn scene(
 
     // Visualize blocked cells
     for &(x, y) in &blocked.0 {                
-        let p = world::grid_to_iso(x, y, constants::TILE_W, constants::TILE_H);
+        let p = world::grid_to_iso(x as f32, y as f32, constants::TILE_W, constants::TILE_H);
         
         commands.spawn((
             world::Solid,
@@ -91,7 +91,7 @@ pub fn scene(
     }
 
     // The movable player cube
-    let start = world::GridPos { x: 0, y: 0 };    
+    let start = world::GridPos { x: 0.0, y: 0.0 };    
     let p = world::grid_to_iso(start.x, start.y, constants::TILE_W, constants::TILE_H);
     println!("initial {}", p);
     commands.spawn((
