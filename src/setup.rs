@@ -1,7 +1,6 @@
 use bevy::{
     prelude::*,
     camera::{ScalingMode, RenderTarget},
-    ui::prelude::*,
     render::{            
             render_resource::{
             Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
@@ -51,12 +50,12 @@ pub fn scene(
     const H: usize = 8;
     const LEVEL: [[u8; W]; H] = [
         [0,0,0,0,0,0,0,0,0,0],
-        [0,1,1,0,0,0,0,0,0,0],
-        [0,0,1,0,0,1,1,1,0,0],
-        [0,0,1,0,0,1,0,1,0,0],
-        [0,0,1,0,0,1,0,1,0,0],
-        [0,0,0,0,0,1,0,0,0,0],
-        [0,0,0,0,0,1,0,0,0,0],
+        [0,1,0,0,0,1,0,0,0,0],
+        [0,1,0,0,0,1,0,0,0,0],
+        [0,1,0,0,0,1,0,0,0,0],
+        [0,1,0,0,0,1,0,0,0,0],
+        [0,1,0,0,0,1,0,0,0,0],
+        [0,1,0,0,0,1,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0],
     ];
 
@@ -110,11 +109,7 @@ pub fn minimap(
 ) {
     // 1) Create a render texture (what the minimap camera will draw into)
     let width: u32 = 256;
-    let height: u32 = 256;
-
-    let image = Image::new_target_texture(width, height, TextureFormat::bevy_default());
-
-    let image_handle = images.add(image);
+    let height: u32 = 256;        
 
     let mut image = Image {
         texture_descriptor: TextureDescriptor {
@@ -158,14 +153,14 @@ pub fn minimap(
     ));
 
     // 3) UI: place the render texture in the corner
-    commands.spawn((Node {
+    commands.spawn(Node {
         width:Val::Px(180.0),
         height: Val::Px(180.0),        
         position_type: PositionType::Absolute,
         right: Val::Px(10.0),
         top: Val::Px(10.0),
         ..default()
-    }))
+    })
     .with_children(|parent| {
         parent.spawn(ImageNode {            
             image: rt_handle,

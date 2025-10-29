@@ -67,7 +67,7 @@ pub fn animate_camera_spin(
         let eased = ease_in_out_cubic(alpha);
 
         let yaw = lerp_angle_deg(spin.start_yaw, spin.end_yaw, eased);
-        println!("{}", yaw);
+        // println!("{}", yaw);
         iso.yaw_deg = yaw.rem_euclid(360.0);
         *tform = iso_camera_transform(iso.yaw_deg, iso.pitch_deg, iso.radius);
 
@@ -92,12 +92,12 @@ pub fn animate_camera_spin(
 /// - Keeps the minimap camera top-down (forward = -Y)
 /// - Rotates its "up" around Y by the same yaw as the iso camera.
 ///   Using `up = rotate_y(-Z, yaw)` turns the minimap by the identical 90° steps.
-fn sync_minimap_to_iso_yaw(
+pub fn sync_minimap_to_iso_yaw(
     iso_q: Query<&IsoCamera>,
     mut mini_q: Query<(&MinimapCamera, &mut Transform)>,
 ) {
-    let iso = iso_q.single();
-    let yaw = iso.yaw_deg.to_radians();
+    let iso = iso_q.single().unwrap();
+    let yaw = (iso.yaw_deg - 45.0).to_radians();
 
     // Up vector rotated around Y by yaw (start from -Z for Cartesian feel)
     let up = Quat::from_rotation_y(yaw) * -Vec3::Z;
