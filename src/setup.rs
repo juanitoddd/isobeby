@@ -40,6 +40,7 @@ pub fn scene(
             duration: 0.35,     // tweak for snappier/slower spin
             queued_steps: 0,
         },
+        // camera::CameraFollow { stiffness: 20.0, damping: 10.0, vel: Vec3::ZERO },
         // Put camera on a diagonal and look at the origin.
         // Using equal XYZ like (10,10,10) gives a classic iso feel (~45° around Y, ~35.264° tilt).
         // Transform::from_xyz(10.0, 10.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -49,14 +50,14 @@ pub fn scene(
     const W: usize = 10;
     const H: usize = 8;
     const LEVEL: [[u8; W]; H] = [
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,1,0,0,0,1,0,0,0,0],
-        [0,1,0,0,0,1,0,0,0,0],
-        [0,1,0,0,0,1,0,0,0,0],
-        [0,1,0,0,0,1,0,0,0,0],
-        [0,1,0,0,0,1,0,0,0,0],
-        [0,1,0,0,0,1,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
+        [1,1,1,1,1,1,1,1,1,1],
+        [1,1,0,0,0,0,0,0,0,0],
+        [1,0,1,0,0,0,0,0,0,0],
+        [1,0,0,1,0,0,0,0,0,0],
+        [1,0,0,0,1,0,0,0,0,0],
+        [1,0,0,0,0,1,0,0,0,0],
+        [1,0,0,0,0,0,1,0,0,0],
+        [1,0,0,0,0,0,0,1,0,0],
     ];
 
     blocked.0.clear();
@@ -69,26 +70,34 @@ pub fn scene(
     }
 
     // Example walls (blocked cells)
-    // blocked.0.extend([(1, 0), (2, 1), (0, 2)]); // add any cells you want to be solid
+    // blocked.0.extend([(1, 0)]); // add any cells you want to be solid
+    // blocked.0.extend([(2, 0)]); // add any cells you want to be solid
+    // blocked.0.extend([(3, 0)]); // add any cells you want to be solid
+    // blocked.0.extend([(0, -1)]);
+    // blocked.0.extend([(0, -2)]);
+    // blocked.0.extend([(0, -3)]);
+
 
     // Visualize blocked cells
-    for &(x, y) in &blocked.0 {
-        let p = world::iso_world_from_grid(x, y, constants::TILE_W, constants::TILE_H);
+    for &(x, y) in &blocked.0 {                
+        let p = world::grid_to_iso(x, y, constants::TILE_W, constants::TILE_H);
+        
         commands.spawn((
             world::Solid,
-            Mesh3d(meshes.add(Cuboid::new(1.0, 0.4, 1.0))),
-            MeshMaterial3d(materials.add(Color::srgb(0.7, 0.2, 0.2))),
-            Transform::from_translation(p + Vec3::Y * 0.2),
-        ));
+            Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+            MeshMaterial3d(materials.add(Color::srgb(0.7, 0.4, 0.5))),            
+            Transform::from_translation(p),
+        ));        
     }
 
     // The movable player cube
-    let start = world::GridPos { x: 0, y: 0 };
-    let p = world::iso_world_from_grid(start.x, start.y, constants::TILE_W, constants::TILE_H);
+    let start = world::GridPos { x: 0, y: 0 };    
+    let p = world::grid_to_iso(start.x, start.y, constants::TILE_W, constants::TILE_H);
+    println!("initial {}", p);
     commands.spawn((
         start,
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        MeshMaterial3d(materials.add(Color::srgb(0.8, 0.7, 0.6))),
+        MeshMaterial3d(materials.add(Color::srgb(0.8, 0.8, 0.5))),
         Transform::from_translation(p),
     ));
 

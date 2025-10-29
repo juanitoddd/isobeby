@@ -1,4 +1,6 @@
 use bevy::{prelude::*, input::keyboard::KeyCode};
+use crate::constants;
+use crate::world;
 
 /* ---------------- Camera state ---------------- */
 
@@ -24,6 +26,13 @@ pub struct CameraSpin {
     pub t: f32,            // elapsed
     pub duration: f32,     // seconds for one 90° spin
     pub queued_steps: i32, // additional ±90° steps waiting
+}
+
+#[derive(Component)]
+pub struct CameraFollow { 
+    pub stiffness: f32, 
+    pub damping: f32, 
+    pub vel: Vec3 
 }
 
 /* ---------------- Input: queue spins ---------------- */
@@ -56,10 +65,10 @@ pub fn handle_spin_input(
 
 pub fn animate_camera_spin(
     time: Res<Time>,
+    player_q: Query<(&world::GridPos), Without<world::Solid>>,
     mut q: Query<(&mut IsoCamera, &mut CameraSpin, &mut Transform)>,
 ) {
-    let Ok((mut iso, mut spin, mut tform)) = q.single_mut() else { panic!() };
-
+    let Ok((mut iso, mut spin, mut tform)) = q.single_mut() else { panic!() };    
     // If we’re mid-spin, advance it.
     if spin.t < spin.duration {
         spin.t += time.delta_secs();
@@ -85,7 +94,7 @@ pub fn animate_camera_spin(
                 spin.t = 0.0;
             }
         }
-    }
+    } 
 }
 
 /// Call this every frame (or whenever yaw changes):
@@ -109,7 +118,58 @@ pub fn sync_minimap_to_iso_yaw(
     }
 }
 
+
+pub fn follow_center_snap(
+    player_q: Query<(&world::GridPos), Without<world::Solid>>,
+    mut cam_q: Query<(&IsoCamera, &mut Transform)>,
+) {
+    let gp = player_q.single().unwrap();
+    let target = world::grid_to_iso(gp.x, gp.y, constants::TILE_W, constants::TILE_H);
+
+    for (iso, mut cam_tf) in &mut cam_q {
+        *cam_tf = iso_camera_transform_at(target, iso.yaw_deg, iso.pitch_deg, iso.radius);
+    }
+}
+
+pub fn follow_center_smooth(
+    time: Res<Time>,    
+    player_q: Query<(&world::GridPos), Without<world::Solid>>,
+    mut cam_q: Query<(&IsoCamera, &mut Transform, &mut CameraFollow)>,
+) {
+    let dt = time.delta_secs();
+    let (gp) = player_q.single().unwrap();
+    let target = world::grid_to_iso(gp.x, gp.y, constants::TILE_W, constants::TILE_H);    
+
+    let (iso, mut cam_tf, mut f) = cam_q.single_mut().unwrap();
+    // desired camera position along iso orbit
+    let yaw = iso.yaw_deg.to_radians();
+    let pitch = iso.pitch_deg.to_radians();
+    let dir = Vec3::new(yaw.cos() * pitch.cos(), pitch.sin(), yaw.sin() * pitch.cos());
+    let desired = target + dir * iso.radius;
+
+    // critically-damped spring to desired
+    let k = f.stiffness;       // e.g. 20.0
+    let c = f.damping;         // e.g. 2.0 * (k).sqrt() or just ~10.0
+    let mut pos = cam_tf.translation;
+    let mut vel = f.vel;
+
+    let accel = (desired - pos) * k - vel * c;
+    vel += accel * dt;
+    pos += vel * dt;
+
+    f.vel = vel;
+    cam_tf.translation = pos;
+    cam_tf.look_at(target, Vec3::Y);    
+}
+
 /* ---------------- Helpers ---------------- */
+
+pub fn iso_camera_transform_at(target: Vec3, yaw_deg: f32, pitch_deg: f32, radius: f32) -> Transform {
+    let yaw = yaw_deg.to_radians();
+    let pitch = pitch_deg.to_radians();
+    let dir = Vec3::new(yaw.cos() * pitch.cos(), pitch.sin(), yaw.sin() * pitch.cos());
+    Transform::from_translation(target + dir * radius).looking_at(target, Vec3::Y)
+}
 
 pub fn iso_camera_transform(yaw_deg: f32, pitch_deg: f32, radius: f32) -> Transform {
     let yaw = yaw_deg.to_radians();

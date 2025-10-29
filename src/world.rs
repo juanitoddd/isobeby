@@ -13,9 +13,18 @@ pub struct GridPos { pub x: i32, pub y: i32 }
 
 /// Grid (gx, gy) -> world (x, z) for rendering (Y is height).
 pub fn iso_world_from_grid(gx: i32, gy: i32, tile_w: f32, tile_h: f32) -> Vec3 {
+    // println!("grid {} {}", gx, gy);
     let x = (gx as f32 - gy as f32) * (tile_w * 0.5);
     let z = (gx as f32 + gy as f32) * (tile_h * 0.5);
-    Vec3::new(x, 0.0, z)
+    Vec3::new(x, 0.5, z)    
+}
+
+/// Grid (gx, gy) -> world (x, z) for rendering (Y is height).
+pub fn grid_to_iso(gx: i32, gy: i32, _tile_w: f32, _tile_h: f32) -> Vec3 {
+    // println!("grid {} {}", gx, gy);
+    let x = (gx as f32) + 0.5;
+    let z = (-gy as f32) - 0.5;
+    Vec3::new(x, 0.5, z)    
 }
 
 /// Inverse: world (x, z) -> fractional grid (gx, gy).
