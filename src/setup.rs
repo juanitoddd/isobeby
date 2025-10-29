@@ -40,7 +40,7 @@ pub fn scene(
             duration: 0.35,     // tweak for snappier/slower spin
             queued_steps: 0,
         },
-        // camera::CameraFollow { stiffness: 20.0, damping: 10.0, vel: Vec3::ZERO },
+        camera::CameraFollow { stiffness: 20.0, damping: 10.0, vel: Vec3::ZERO },
         // Put camera on a diagonal and look at the origin.
         // Using equal XYZ like (10,10,10) gives a classic iso feel (~45° around Y, ~35.264° tilt).
         // Transform::from_xyz(10.0, 10.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -50,14 +50,14 @@ pub fn scene(
     const W: usize = 10;
     const H: usize = 8;
     const LEVEL: [[u8; W]; H] = [
-        [1,1,1,1,1,1,1,1,1,1],
-        [1,1,0,0,0,0,0,0,0,0],
-        [1,0,1,0,0,0,0,0,0,0],
-        [1,0,0,1,0,0,0,0,0,0],
-        [1,0,0,0,1,0,0,0,0,0],
-        [1,0,0,0,0,1,0,0,0,0],
-        [1,0,0,0,0,0,1,0,0,0],
-        [1,0,0,0,0,0,0,1,0,0],
+        [1,1,1,0,0,0,0,0,0,0],
+        [1,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0],
     ];
 
     blocked.0.clear();

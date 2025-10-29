@@ -102,18 +102,21 @@ pub fn animate_camera_spin(
 /// - Rotates its "up" around Y by the same yaw as the iso camera.
 ///   Using `up = rotate_y(-Z, yaw)` turns the minimap by the identical 90° steps.
 pub fn sync_minimap_to_iso_yaw(
+    player_q: Query<(&world::GridPos), Without<world::Solid>>,
     iso_q: Query<&IsoCamera>,
     mut mini_q: Query<(&MinimapCamera, &mut Transform)>,
 ) {
+    let gp = player_q.single().unwrap();
     let iso = iso_q.single().unwrap();
-    let yaw = (iso.yaw_deg - 45.0).to_radians();
+    let yaw = (iso.yaw_deg - 45.0).to_radians();    
 
     // Up vector rotated around Y by yaw (start from -Z for Cartesian feel)
     let up = Quat::from_rotation_y(yaw) * -Vec3::Z;
 
     for (mini, mut t) in &mut mini_q {
-        // Keep the camera straight above the center, looking down:
-        let eye = Vec3::new(mini.center.x, mini.height, mini.center.z);
+        // Keep the camera straight above the center, looking down:        
+        let eye = Vec3::new(mini.center.x + (gp.x as f32), mini.height, mini.center.z);
+        println!("minimap {}", eye);
         *t = Transform::from_translation(eye).looking_at(mini.center, up);
     }
 }
