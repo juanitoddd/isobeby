@@ -69,6 +69,11 @@ pub fn animate_camera_spin(
     mut q: Query<(&mut IsoCamera, &mut CameraSpin, &mut Transform)>,
 ) {
     let Ok((mut iso, mut spin, mut tform)) = q.single_mut() else { panic!() };    
+    
+    let target = {
+        let gp = player_q.single().unwrap();
+        world::grid_to_iso(gp.x, gp.y, constants::TILE_W, constants::TILE_H)
+    };
     // If we’re mid-spin, advance it.
     if spin.t < spin.duration {
         spin.t += time.delta_secs();
@@ -77,12 +82,15 @@ pub fn animate_camera_spin(
 
         let yaw = lerp_angle_deg(spin.start_yaw, spin.end_yaw, eased);
         iso.yaw_deg = yaw.rem_euclid(360.0);
-        *tform = iso_camera_transform(iso.yaw_deg, iso.pitch_deg, iso.radius);
+        // *tform = iso_camera_transform(iso.yaw_deg, iso.pitch_deg, iso.radius);
+        *tform = iso_camera_transform_at(target, iso.yaw_deg, iso.pitch_deg, iso.radius);
+
 
         // Finished this step?
         if alpha >= 1.0 {
             iso.yaw_deg = snap_to_quarter_turns(iso.yaw_deg);
-            *tform = iso_camera_transform(iso.yaw_deg, iso.pitch_deg, iso.radius);
+            // *tform = iso_camera_transform(iso.yaw_deg, iso.pitch_deg, iso.radius);
+            *tform = iso_camera_transform_at(target, iso.yaw_deg, iso.pitch_deg, iso.radius);
 
             // Launch next queued step if any.
             if spin.queued_steps != 0 {
