@@ -107,7 +107,11 @@ pub fn scene(
     // ));    
 
     // Light
-    commands.spawn((PointLight::default(), Transform::from_xyz(6.0, 10.0, 6.0)));
+    commands.spawn((
+        world::FollowLight,
+        PointLight::default(), 
+        Transform::from_xyz(6.0, 10.0, 6.0)
+    ));    
 }
 
 

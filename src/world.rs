@@ -1,4 +1,8 @@
 use bevy::{prelude::*};
+use crate::constants;
+
+#[derive(Component)]
+pub struct FollowLight; // tag your light
 
 /// Mark things that block movement on the grid (tiles, walls, crates).
 #[derive(Component, Debug)]
@@ -37,4 +41,16 @@ pub fn grid_from_iso_world(x: f32, z: f32, tile_w: f32, tile_h: f32) -> Vec2 {
     // b = gx + gy
     // => gx = (a + b)/2, gy = (b - a)/2
     Vec2::new((a + b) * 0.5, (b - a) * 0.5)
+}
+
+pub fn light_player(        
+    player_q: Query<(&GridPos), Without<Solid>>,
+    mut light_q: Query<&mut Transform, With<FollowLight>>,
+) {            
+    
+    let Ok(mut player) = player_q.single() else { panic!() };    
+    let Ok((mut light_tf)) = light_q.single_mut() else { panic!() };
+    // let target = grid_to_iso(player.x, player.y, constants::TILE_W, constants::TILE_H);
+    light_tf.translation.x = player.x;
+    light_tf.translation.z = -player.y;  
 }

@@ -65,7 +65,7 @@ pub fn handle_spin_input(
 
 pub fn animate_camera_spin(
     time: Res<Time>,
-    player_q: Query<(&world::GridPos), Without<world::Solid>>,
+    player_q: Query<&world::GridPos, Without<world::Solid>>,
     mut q: Query<(&mut IsoCamera, &mut CameraSpin, &mut Transform)>,
 ) {
     let Ok((mut iso, mut spin, mut tform)) = q.single_mut() else { panic!() };    
@@ -124,9 +124,49 @@ pub fn sync_minimap_to_iso_yaw(
         // Keep the camera straight above the center, looking down:        
         let eye = Vec3::new(mini.center.x, mini.height, mini.center.z);
         *t = Transform::from_translation(eye).looking_at(mini.center, up);
+        t.translation.x = gp.x;
+        t.translation.z = -gp.y;
     }
 }
 
+/* ---------------- Helpers ---------------- */
+
+pub fn iso_camera_transform_at(target: Vec3, yaw_deg: f32, pitch_deg: f32, radius: f32) -> Transform {
+    let yaw = yaw_deg.to_radians();
+    let pitch = pitch_deg.to_radians();
+    let dir = Vec3::new(yaw.cos() * pitch.cos(), pitch.sin(), yaw.sin() * pitch.cos());
+    Transform::from_translation(target + dir * radius).looking_at(target, Vec3::Y)
+}
+
+pub fn iso_camera_transform(yaw_deg: f32, pitch_deg: f32, radius: f32) -> Transform {
+    let yaw = yaw_deg.to_radians();
+    let pitch = pitch_deg.to_radians();
+    let dir = Vec3::new(yaw.cos() * pitch.cos(), pitch.sin(), yaw.sin() * pitch.cos());
+    Transform::from_translation(dir * radius).looking_at(Vec3::ZERO, Vec3::Y)
+}
+
+/// Eases the motion (0..1 -> 0..1).
+fn ease_in_out_cubic(t: f32) -> f32 {
+    if t < 0.5 { 4.0 * t * t * t } else { 1.0 - (-2.0 * t + 2.0).powi(3) / 2.0 }
+}
+
+/// Shortest-arc angle lerp in degrees.
+fn lerp_angle_deg(a: f32, b: f32, t: f32) -> f32 {
+    let mut delta = (b - a) % 360.0;
+    if delta > 180.0 { delta -= 360.0; }
+    if delta < -180.0 { delta += 360.0; }
+    a + delta * t
+}
+
+/// Snap to exact 45° + n·90° if you want clean quadrants (optional).
+fn snap_to_quarter_turns(yaw: f32) -> f32 {
+    // Base at 45°, step 90°
+    let rel = yaw - 45.0;
+    let snapped = (rel / 90.0).round() * 90.0 + 45.0;
+    snapped.rem_euclid(360.0)
+}
+
+/* ------ DEPRECATED ----------- */
 
 pub fn follow_center_snap(
     player_q: Query<(&world::GridPos), Without<world::Solid>>,
@@ -169,41 +209,4 @@ pub fn follow_center_smooth(
     f.vel = vel;
     // cam_tf.translation = pos;
     // cam_tf.look_at(target, Vec3::Y);
-}
-
-/* ---------------- Helpers ---------------- */
-
-pub fn iso_camera_transform_at(target: Vec3, yaw_deg: f32, pitch_deg: f32, radius: f32) -> Transform {
-    let yaw = yaw_deg.to_radians();
-    let pitch = pitch_deg.to_radians();
-    let dir = Vec3::new(yaw.cos() * pitch.cos(), pitch.sin(), yaw.sin() * pitch.cos());
-    Transform::from_translation(target + dir * radius).looking_at(target, Vec3::Y)
-}
-
-pub fn iso_camera_transform(yaw_deg: f32, pitch_deg: f32, radius: f32) -> Transform {
-    let yaw = yaw_deg.to_radians();
-    let pitch = pitch_deg.to_radians();
-    let dir = Vec3::new(yaw.cos() * pitch.cos(), pitch.sin(), yaw.sin() * pitch.cos());
-    Transform::from_translation(dir * radius).looking_at(Vec3::ZERO, Vec3::Y)
-}
-
-/// Eases the motion (0..1 -> 0..1).
-fn ease_in_out_cubic(t: f32) -> f32 {
-    if t < 0.5 { 4.0 * t * t * t } else { 1.0 - (-2.0 * t + 2.0).powi(3) / 2.0 }
-}
-
-/// Shortest-arc angle lerp in degrees.
-fn lerp_angle_deg(a: f32, b: f32, t: f32) -> f32 {
-    let mut delta = (b - a) % 360.0;
-    if delta > 180.0 { delta -= 360.0; }
-    if delta < -180.0 { delta += 360.0; }
-    a + delta * t
-}
-
-/// Snap to exact 45° + n·90° if you want clean quadrants (optional).
-fn snap_to_quarter_turns(yaw: f32) -> f32 {
-    // Base at 45°, step 90°
-    let rel = yaw - 45.0;
-    let snapped = (rel / 90.0).round() * 90.0 + 45.0;
-    snapped.rem_euclid(360.0)
 }

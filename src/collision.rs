@@ -41,58 +41,38 @@ pub fn follow_player(
     keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
     mut cam_q: Query<(&camera::IsoCamera, &mut Transform)>,
-    mut movers: Query<&mut world::GridPos, Without<world::Solid>>, // entities that can move
+    mut player_q: Query<&mut world::GridPos, Without<world::Solid>>, // entities that can move
+    // mut light_q: Query<&mut Transform, With<world::FollowLight>>,
 ) {
     let speed = 5.0; // units per second
     let dx = speed * time.delta_secs();
+        
+    let Ok(mut player) = player_q.single_mut() else { panic!() };
+    let Ok((mut iso, mut cam_tf)) = cam_q.single_mut() else { panic!() };
+    // let Ok((mut light_tf)) = light_q.single_mut() else { panic!() };
+
+    
+    // light_tf.translation.x = target.x;
+    // light_tf.translation.z = target.z;
 
     if keys.pressed(KeyCode::ArrowUp) {
-        for (iso,mut cam_tf) in &mut cam_q {
-            // *cam_tf = iso_camera_transform_at(target, iso.yaw_deg, iso.pitch_deg, iso.radius);
-            cam_tf.translation.x += dx;
-        }
-        for mut gp in &mut movers {
-            gp.x += dx;
-        }
+        cam_tf.translation.x += dx;
+        player.x += dx;
     }
 
     if keys.pressed(KeyCode::ArrowDown) {
-        for (iso,mut cam_tf) in &mut cam_q {
-            // *cam_tf = iso_camera_transform_at(target, iso.yaw_deg, iso.pitch_deg, iso.radius);
-            cam_tf.translation.x -= dx;
-        }
-        for mut gp in &mut movers {
-            gp.x -= dx;
-        }
+        cam_tf.translation.x -= dx;
+        player.x -= dx;
     }
 
     if keys.pressed(KeyCode::ArrowLeft) {
-        for (iso, mut cam_tf) in &mut cam_q {
-            // *cam_tf = iso_camera_transform_at(target, iso.yaw_deg, iso.pitch_deg, iso.radius);
-            cam_tf.translation.z += dx;
-        }
-        for mut gp in &mut movers {
-            gp.y -= dx;
-        }
+        cam_tf.translation.z += dx;
+        player.y -= dx;
     }
     if keys.pressed(KeyCode::ArrowRight) {
-        for (iso, mut cam_tf) in &mut cam_q {
-            // *cam_tf = iso_camera_transform_at(target, iso.yaw_deg, iso.pitch_deg, iso.radius);
-            cam_tf.translation.z -= dx;
-        }
-        for mut gp in &mut movers {
-            gp.y += dx;
-        }
-    }
-    
-
-
-    // if let Ok(mut tf) = cam_q.single_mut() {
-        // tf.translation.x += dx;          // move +X in world space
-        // tf.look_at(Vec3::new(tf.translation.x, 0.5, tf.translation.z), Vec3::Y);
-        // if you want to keep looking at the player instead, call iso_camera_transform_at
-        // with the current yaw/pitch/radius and player target instead of look_at above.
-    // }
+        cam_tf.translation.z -= dx;        
+        player.y += dx;        
+    }    
 }
 
 pub fn move_with_collision_system(
